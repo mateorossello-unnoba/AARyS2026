@@ -1,0 +1,10 @@
+replicaCount: 3
+
+image:
+  repository: nginx
+  tag: "1.31.5-alpine3.24"
+
+service:
+  containerPort: 80
+  port: 80
+  nodePort: 30100

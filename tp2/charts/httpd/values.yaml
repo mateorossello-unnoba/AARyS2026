@@ -1,0 +1,10 @@
+replicaCount: 2
+
+image:
+  repository: httpd
+  tag: "2.4-alpine3.24"
+
+service:
+  containerPort: 80
+  port: 80
+  nodePort: 30200
