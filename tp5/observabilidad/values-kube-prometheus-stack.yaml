@@ -1,0 +1,20 @@
+alertmanager:
+  enabled: false
+
+grafana:
+  resources:
+    limits:
+      memory: 1Gi
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki.observabilidad.svc.cluster.local:3100
+      access: proxy
+      isDefault: false
+
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false

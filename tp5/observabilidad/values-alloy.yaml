@@ -1,0 +1,58 @@
+alloy:
+  configMap:
+    content: |
+      // Descubrir los pods del clúster
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+      
+      // Extraer las metaetiquetas de Kubernetes para convertirlas en labels limpios
+      discovery.relabel "pods" {
+        targets = discovery.kubernetes.pods.targets
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+          target_label  = "app"
+        }
+      }
+
+      // Leer los logs y enviarlos a la etapa de procesamiento
+      loki.source.kubernetes "pods" {
+        targets    = discovery.relabel.pods.output
+        forward_to = [loki.process.parse_json.receiver]
+      }
+
+      // Procesar el texto plano
+      loki.process "parse_json" {
+        forward_to = [loki.write.local.receiver]
+
+        stage.json {
+          expressions = {
+            level = "level",
+          }
+        }
+
+        stage.labels {
+          values = {
+            level = "level",
+          }
+        }
+      }
+
+      // Enviar a la base de datos de Loki
+      loki.write "local" {
+        endpoint {
+          url = "http://loki.observabilidad.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
